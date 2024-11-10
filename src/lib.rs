@@ -22,15 +22,22 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("Not enough arguments");
-        }
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        // skip past first arg (file path)
+        args.next();
 
-        let query = args[1].clone();
-        let file_path = args[2].clone();
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
+
+        let file_path = match args.next() {
+            Some(path) => path,
+            None => return Err("Didn't get a file path"),
+        };
 
         let ignore_case = env::var("IGNORE_CASE").is_ok();
+        println!("Ignore case? {ignore_case}");
 
         Ok(Config {
             query,
@@ -41,27 +48,41 @@ impl Config {
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut matches = Vec::new();
-    for line in contents.lines() {
-        if line.contains(query) {
-            matches.push(line);
-        }
-    }
+    // New functional search method
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 
-    matches
+    // Old search method
+    // let mut matches = Vec::new();
+    // for line in contents.lines() {
+    //     if line.contains(query) {
+    //         matches.push(line);
+    //     }
+    // }
+    // matches
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = query.to_lowercase();
-    let mut matches = Vec::new();
 
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            matches.push(line);
-        }
-    }
+    // new functional search
+    contents
+        .lines()
+        .filter(|line| line.to_lowercase().contains(&query))
+        .collect()
 
-    matches
+    // Old serach method
+    // let mut matches = Vec::new();
+
+    // for line in contents.lines() {
+    //     if line.to_lowercase().contains(&query) {
+    //         matches.push(line);
+    //     }
+    // }
+
+    // matches
 }
 
 #[cfg(test)]

@@ -1,1 +1,4 @@
 /target
+output.txt
+.vscode/
+.vscode/launch.json
